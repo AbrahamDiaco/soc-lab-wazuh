@@ -1,141 +1,112 @@
 # 🛡️ SOC Lab — Threat Detection with Wazuh
 
-**Author:** Abraham Diaco   
-**Environment:** VirtualBox · Ubuntu 22.04 LTS  
-**Status:** 🟢 Active  
-
-> A hands-on home lab simulating real-world SOC scenarios using Wazuh as SIEM/XDR. Each scenario includes a bilingual (FR/EN) incident response playbook mapped to MITRE ATT&CK.
+**Author:** Abraham Diaco | Cybersecurity Specialist | CEH · ISO 27001 LA  
+**Environment:** VirtualBox · Ubuntu 22.04 LTS · Windows 10  
+**Status:** 🟢 Active
 
 ---
 
-## 🏗️ Lab Architecture
+## Lab Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│                  Host Machine                   │
-│              VirtualBox (NAT Network)           │
-└────────────┬──────────────────┬─────────────────┘
-             │                  │
-    ┌────────▼────────┐ ┌───────▼────────┐
-    │   VM 1 — Manager│ │ VM 2 — Agent   │
-    │  Ubuntu 22.04   │ │ Ubuntu 22.04   │
-    │                 │ │                │
-    │ Wazuh Manager   │ │ Wazuh Agent    │
-    │ Wazuh Indexer   │ │ (attack target)│
-    │ Wazuh Dashboard │ │                │
-    │ IP: 192.168.x.10│ │ IP: 192.168.x.20│
-    └─────────────────┘ └────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                     HOST MACHINE                        │
+│                                                         │
+│  ┌──────────────────┐    ┌────────────┐  ┌───────────┐  │
+│  │   VM 1 — userver │    │   VM 2     │  │   VM 3    │  │
+│  │ Wazuh Manager    │◄───│  Agent     │  │  Agent    │  │
+│  │ + Indexer        │    │  Windows   │  │  Kali     │  │
+│  │ + Dashboard      │◄───│  DESKTOP-  │  │  Linux    │  │
+│  │ Ubuntu 22.04     │    │  VJ217GT   │  │           │  │
+│  │ Wazuh v4.14.5    │    │            │  │           │  │
+│  └──────────────────┘    └────────────┘  └───────────┘  │
+│      192.168.120.128                                     │
+└─────────────────────────────────────────────────────────┘
 ```
 
-| VM | Role | OS | RAM |
-|---|---|---|---|
-| VM 1 | Wazuh Manager + Dashboard | Ubuntu 22.04 LTS | 4 GB |
-| VM 2 | Wazuh Agent (target) | Ubuntu 22.04 LTS | 2 GB |
+**Agents connectés :** 3 (userver · DESKTOP-VJ217GT · kali)  
+**Réseau :** Host-Only + NAT
 
 ---
 
-## 📁 Repository Structure
+## Scénarios couverts
+
+| # | Scénario | MITRE ATT&CK | Rule ID | Statut |
+|---|----------|-------------|---------|--------|
+| 1 | FIM — Fichier suspect créé dans /etc | T1565.001 | 554 | ✅ Documenté |
+| 2 | Brute Force SSH | T1110.001 | 5710 | 🔜 En cours |
+| 3 | Active Response — Blocage IP | T1059 | — | 🔜 Planifié |
+
+---
+
+## 📊 Métriques réelles du lab
+
+| Métrique | Valeur |
+|----------|--------|
+| Temps de détection FIM | **< 60 secondes** |
+| Rule ID déclenché | **554** — New file added to the system |
+| Alertes générées | **1** alerte ciblée, 0 faux positif |
+| Agents monitorés | **3** (Linux × 2, Windows × 1) |
+| Version Wazuh | **4.14.5** |
+
+---
+
+## Structure du repo
 
 ```
 soc-lab-wazuh/
-├── README.md                        ← This file
+├── README.md
 ├── setup/
-│   └── install-wazuh.md            ← Step-by-step installation guide
+│   └── install-wazuh.md          # Guide d'installation complet
 ├── scenarios/
 │   └── FIM-malware/
-│       ├── playbook-FR.md          ← IR Playbook (French)
-│       ├── playbook-EN.md          ← IR Playbook (English)
-│       └── screenshots/            ← Wazuh alert screenshots
+│       ├── playbook-FR.md         # Playbook IR en français
+│       ├── playbook-EN.md         # Playbook IR en anglais
+│       └── screenshots/
+│           ├── 01-fim-alert-list.png
+│           ├── 02-fim-alert-detail.png
+│           └── 03-overview-dashboard.png
 └── rules/
-    └── custom-rules.xml            ← Custom Wazuh detection rules
+    └── custom-rules.xml           # Règles personnalisées (à venir)
 ```
 
 ---
 
-## 🎯 Scenarios Covered
+## Scénario FIM — Résultats
 
-| # | Scenario | MITRE ATT&CK | Playbook | Status |
-|---|---|---|---|---|
-| 01 | Suspicious File / Malware (FIM) | T1565.001 | [FR](scenarios/FIM-malware/playbook-FR.md) · [EN](scenarios/FIM-malware/playbook-EN.md) | ✅ Done |
-| 02 | SSH Brute Force | T1110.001 | Coming soon | 🔄 Planned |
-| 03 | Linux Privilege Escalation | T1548.001 | Coming soon | 🔄 Planned |
-| 04 | Network Reconnaissance (Nmap) | T1046 | Coming soon | 🔄 Planned |
-
----
-
-## 🔧 Tools & Technologies
-
-| Category | Tools |
-|---|---|
-| SIEM / XDR | Wazuh 4.x |
-| Virtualization | VirtualBox |
-| OS | Ubuntu 22.04 LTS |
-| Threat Intel | VirusTotal (Wazuh integration) |
-| Framework | MITRE ATT&CK |
-| Documentation | Markdown (FR/EN) |
-
----
-
-## 📋 Playbook Structure
-
-Each scenario follows the **NIST SP 800-61** incident response lifecycle:
+**Simulation :** Création d'un fichier suspect (`malware-test.sh`) dans `/etc`  
+**Détection :** Wazuh a déclenché la Rule 554 en moins de 60 secondes  
+**Mapping MITRE :** T1565.001 — Stored Data Manipulation
 
 ```
-Identification → Containment → Analysis → Eradication → Recovery → Reporting
+[Attaquant] → touch /etc/malware-test.sh
+     ↓
+[Wazuh syscheckd] → scan FIM déclenché
+     ↓
+[Rule 554] → "New file added to the system"
+     ↓
+[Dashboard] → Alerte visible en < 60s
 ```
 
-Every playbook includes:
-- ✅ Detection flow diagram
-- ✅ Step-by-step response checklist
-- ✅ Ready-to-use bash commands
-- ✅ MITRE ATT&CK mapping
-- ✅ Escalation matrix
-- ✅ Incident report template
-- ✅ Bilingual (French / English)
+---
+
+## Technologies utilisées
+
+![Wazuh](https://img.shields.io/badge/Wazuh-4.14.5-blue)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04_LTS-orange)
+![Windows](https://img.shields.io/badge/Windows-10-blue)
+![Kali](https://img.shields.io/badge/Kali-Linux-purple)
+![MITRE](https://img.shields.io/badge/MITRE-ATT%26CK-red)
 
 ---
 
-## 🚀 Getting Started
+## Références
 
-```bash
-# Clone this repository
-git clone https://github.com/AbrahamDiaco/soc-lab-wazuh.git
-
-# Start with the installation guide
-cat setup/install-wazuh.md
-
-# Browse the first scenario
-cat scenarios/FIM-malware/playbook-EN.md
-```
-
-See [setup/install-wazuh.md](setup/install-wazuh.md) for the full Wazuh deployment guide.
+- [Documentation Wazuh](https://documentation.wazuh.com)
+- [MITRE ATT&CK T1565.001](https://attack.mitre.org/techniques/T1565/001/)
+- [Playbook FR](scenarios/FIM-malware/playbook-FR.md)
+- [Playbook EN](scenarios/FIM-malware/playbook-EN.md)
 
 ---
 
-## 📊 Lab Metrics (Scenario 01 — FIM)
-
-| Metric | Value |
-|---|---|
-| Detection time | < 60 seconds |
-| Alert rule triggered | Wazuh rule 554 |
-| MITRE technique | T1565.001 |
-| VirusTotal engines (test file) | 0 / 72 (simulated benign) |
-| False positives | 0 |
-
----
-
-## 🌍 Languages
-
-All playbooks are available in **French and English** to support international SOC environments and multilingual teams.
-
----
-
-## 📬 Contact
-
-**Abraham Diaco** — Cybersecurity Specialist | CEH · ISO/IEC 27001 LA   
-💼 [LinkedIn](https://linkedin.com/in/abrahamdiaco)  
-📧 tanguy.diaco@gmail.com  
-
----
-
-*This lab is part of my SOC Analyst portfolio. All scenarios are performed in an isolated virtual environment for educational purposes only.*
+*Projet éducatif — Abraham Diaco · Cybersecurity Specialist | CEH · ISO 27001 LA*
