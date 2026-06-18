@@ -1,7 +1,8 @@
 # 🛡️ SOC Lab — Threat Detection with Wazuh
 
 **Author:** Abraham Diaco | Cybersecurity Specialist | CEH · ISO 27001 LA  
-**Environment:** VirtualBox · Ubuntu 22.04 LTS · Windows 10  
+**Environment:** VirtualBox · Ubuntu 22.04 LTS · Windows 10 · Kali Linux  
+**Wazuh version:** 4.14.5  
 **Status:** 🟢 Active
 
 ---
@@ -31,23 +32,20 @@
 
 ## Scénarios couverts
 
-| # | Scénario | MITRE ATT&CK | Rule ID | Statut |
-|---|----------|-------------|---------|--------|
-| 1 | FIM — Fichier suspect créé dans /etc | T1565.001 | 554 | ✅ Documenté |
-| 2 | Brute Force SSH | T1110.001 | 5710 | 🔜 En cours |
-| 3 | Active Response — Blocage IP | T1059 | — | 🔜 Planifié |
+| # | Scénario | MITRE ATT&CK | Rule ID | Détection | Statut |
+|---|----------|-------------|---------|-----------|--------|
+| 1 | FIM — Fichier suspect dans /etc | T1565.001 | 554 | < 60s | ✅ Documenté |
+| 2 | Brute Force SSH depuis Kali | T1110.001 | 5763 | < 2 min | ✅ Documenté |
+| 3 | Active Response — Blocage IP auto | T1059 | — | — | 🔜 Planifié |
 
 ---
 
 ## 📊 Métriques réelles du lab
 
-| Métrique | Valeur |
-|----------|--------|
-| Temps de détection FIM | **< 60 secondes** |
-| Rule ID déclenché | **554** — New file added to the system |
-| Alertes générées | **1** alerte ciblée, 0 faux positif |
-| Agents monitorés | **3** (Linux × 2, Windows × 1) |
-| Version Wazuh | **4.14.5** |
+| Scénario | Alertes | Temps de détection | Rule principale | Level |
+|----------|---------|--------------------|----------------|-------|
+| FIM — Fichier suspect | 1 | **< 60 secondes** | 554 | 5 |
+| Brute Force SSH | **1,858** | **< 2 minutes** | 5763 | 10 🔴 |
 
 ---
 
@@ -57,36 +55,64 @@
 soc-lab-wazuh/
 ├── README.md
 ├── setup/
-│   └── install-wazuh.md          # Guide d'installation complet
+│   └── install-wazuh.md
 ├── scenarios/
-│   └── FIM-malware/
-│       ├── playbook-FR.md         # Playbook IR en français
-│       ├── playbook-EN.md         # Playbook IR en anglais
+│   ├── FIM-malware/
+│   │   ├── playbook-FR.md
+│   │   ├── playbook-EN.md
+│   │   └── screenshots/
+│   │       ├── 01-fim-alert-list.png
+│   │       ├── 02-fim-alert-detail.png
+│   │       └── 03-overview-dashboard.png
+│   └── bruteforce-ssh/
+│       ├── playbook-FR.md
+│       ├── playbook-EN.md
 │       └── screenshots/
-│           ├── 01-fim-alert-list.png
-│           ├── 02-fim-alert-detail.png
-│           └── 03-overview-dashboard.png
+│           ├── 04-bruteforce-alert-list.png
+│           └── 05-bruteforce-alert-detail.png
 └── rules/
-    └── custom-rules.xml           # Règles personnalisées (à venir)
+    └── custom-rules.xml
 ```
 
 ---
 
-## Scénario FIM — Résultats
+## Scénario 1 — FIM · Fichier suspect
 
-**Simulation :** Création d'un fichier suspect (`malware-test.sh`) dans `/etc`  
-**Détection :** Wazuh a déclenché la Rule 554 en moins de 60 secondes  
-**Mapping MITRE :** T1565.001 — Stored Data Manipulation
+**Simulation :** Création de `malware-test.sh` dans `/etc`  
+**Détection :** Rule 554 déclenchée en < 60 secondes  
+**MITRE :** T1565.001 — Stored Data Manipulation
 
 ```
 [Attaquant] → touch /etc/malware-test.sh
      ↓
-[Wazuh syscheckd] → scan FIM déclenché
+[Wazuh syscheckd] → scan FIM
      ↓
 [Rule 554] → "New file added to the system"
      ↓
-[Dashboard] → Alerte visible en < 60s
+[Dashboard] → Alerte en < 60s
 ```
+
+📄 [Playbook FR](scenarios/FIM-malware/playbook-FR.md) · [Playbook EN](scenarios/FIM-malware/playbook-EN.md)
+
+---
+
+## Scénario 2 — Brute Force SSH
+
+**Simulation :** Attaque Hydra v9.5 depuis Kali Linux sur userver  
+**Détection :** 1,858 alertes · Rule 5763 Level 10 en < 2 minutes  
+**MITRE :** T1110.001 — Brute Force: Password Guessing
+
+```
+[Kali] ──hydra──► [userver:22]
+     ↓
+[Wazuh PAM/sshd]
+     ↓
+[Rule 5763] → "SSH brute force" Level 10 🔴
+     ↓
+[Dashboard] → 1,858 alertes en < 2 min
+```
+
+📄 [Playbook FR](scenarios/bruteforce-ssh/playbook-FR.md) · [Playbook EN](scenarios/bruteforce-ssh/playbook-EN.md)
 
 ---
 
@@ -94,9 +120,10 @@ soc-lab-wazuh/
 
 ![Wazuh](https://img.shields.io/badge/Wazuh-4.14.5-blue)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04_LTS-orange)
-![Windows](https://img.shields.io/badge/Windows-10-blue)
 ![Kali](https://img.shields.io/badge/Kali-Linux-purple)
+![Windows](https://img.shields.io/badge/Windows-10-blue)
 ![MITRE](https://img.shields.io/badge/MITRE-ATT%26CK-red)
+![Hydra](https://img.shields.io/badge/Hydra-v9.5-darkred)
 
 ---
 
@@ -104,8 +131,8 @@ soc-lab-wazuh/
 
 - [Documentation Wazuh](https://documentation.wazuh.com)
 - [MITRE ATT&CK T1565.001](https://attack.mitre.org/techniques/T1565/001/)
-- [Playbook FR](scenarios/FIM-malware/playbook-FR.md)
-- [Playbook EN](scenarios/FIM-malware/playbook-EN.md)
+- [MITRE ATT&CK T1110.001](https://attack.mitre.org/techniques/T1110/001/)
+- [Guide d'installation](setup/install-wazuh.md)
 
 ---
 
