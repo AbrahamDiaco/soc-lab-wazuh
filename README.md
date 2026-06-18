@@ -36,16 +36,17 @@
 |---|----------|-------------|---------|-----------|--------|
 | 1 | FIM — Fichier suspect dans /etc | T1565.001 | 554 | < 60s | ✅ Documenté |
 | 2 | Brute Force SSH depuis Kali | T1110.001 | 5763 | < 2 min | ✅ Documenté |
-| 3 | Active Response — Blocage IP auto | T1059 | — | — | 🔜 Planifié |
+| 3 | Active Response — Blocage IP auto | T1110.001 | 5763 | **< 1 sec** | ✅ Documenté |
 
 ---
 
 ## 📊 Métriques réelles du lab
 
-| Scénario | Alertes | Temps de détection | Rule principale | Level |
-|----------|---------|--------------------|----------------|-------|
-| FIM — Fichier suspect | 1 | **< 60 secondes** | 554 | 5 |
-| Brute Force SSH | **1,858** | **< 2 minutes** | 5763 | 10 🔴 |
+| Scénario | Alertes | Temps de détection | Rule principale | Level | Intervention humaine |
+|----------|---------|--------------------|----------------|-------|---------------------|
+| FIM — Fichier suspect | 1 | < 60 secondes | 554 | 5 | — |
+| Brute Force SSH | 1,858 | < 2 minutes | 5763 | 10 🔴 | — |
+| Active Response | — | **< 1 seconde** ⚡ | 5763 | 10 🔴 | ❌ Aucune |
 
 ---
 
@@ -64,12 +65,19 @@ soc-lab-wazuh/
 │   │       ├── 01-fim-alert-list.png
 │   │       ├── 02-fim-alert-detail.png
 │   │       └── 03-overview-dashboard.png
-│   └── bruteforce-ssh/
+│   ├── bruteforce-ssh/
+│   │   ├── playbook-FR.md
+│   │   ├── playbook-EN.md
+│   │   └── screenshots/
+│   │       ├── 04-bruteforce-alert-list.png
+│   │       └── 05-bruteforce-alert-detail.png
+│   └── active-response/
 │       ├── playbook-FR.md
 │       ├── playbook-EN.md
 │       └── screenshots/
-│           ├── 04-bruteforce-alert-list.png
-│           └── 05-bruteforce-alert-detail.png
+│           ├── 06-active-response-log.png
+│           ├── 06-active-response-iptables.png
+│           └── 07-active-response-dashboard.png
 └── rules/
     └── custom-rules.xml
 ```
@@ -116,6 +124,28 @@ soc-lab-wazuh/
 
 ---
 
+## Scénario 3 — Active Response · Blocage automatique
+
+**Simulation :** Wazuh bloque automatiquement l'IP de Kali (192.168.120.130) via iptables  
+**Réaction :** < 1 seconde · zéro intervention humaine  
+**MITRE :** T1110.001 — Brute Force: Password Guessing
+
+```
+[Kali] ──hydra──► [userver:22]
+     ↓
+[Rule 5763 — Level 10]
+     ↓
+[wazuh-execd] → firewall-drop
+     ↓
+[iptables DROP 192.168.120.130]
+     ↓
+⚡ Bloqué en < 1 seconde · sans intervention humaine
+```
+
+📄 [Playbook FR](scenarios/active-response/playbook-FR.md) · [Playbook EN](scenarios/active-response/playbook-EN.md)
+
+---
+
 ## Technologies utilisées
 
 ![Wazuh](https://img.shields.io/badge/Wazuh-4.14.5-blue)
@@ -124,6 +154,7 @@ soc-lab-wazuh/
 ![Windows](https://img.shields.io/badge/Windows-10-blue)
 ![MITRE](https://img.shields.io/badge/MITRE-ATT%26CK-red)
 ![Hydra](https://img.shields.io/badge/Hydra-v9.5-darkred)
+![iptables](https://img.shields.io/badge/iptables-Active_Response-green)
 
 ---
 
