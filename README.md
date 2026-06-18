@@ -132,9 +132,10 @@ All playbooks are available in **French and English** to support international S
 
 ## 📬 Contact
 
-**Abraham Diaco** — Cybersecurity Specialist | CEH · ISO/IEC 27001 LA  
+**Abraham Diaco** — Cybersecurity Specialist | CEH · ISO/IEC 27001 LA   
 💼 [LinkedIn](https://linkedin.com/in/abrahamdiaco)  
-📧 tanguy.diaco@gmail.com
+📧 tanguy.diaco@gmail.com  
+
 ---
 
 *This lab is part of my SOC Analyst portfolio. All scenarios are performed in an isolated virtual environment for educational purposes only.*
